@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Farmer Data Search</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    input { padding: 8px; width: 300px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    th { background-color: #ffe600; }
+    #loading { margin-top: 10px; font-style: italic; color: gray; }
+  </style>
+</head>
+<body>
+  <h2>Search Farmer Data</h2>
+  <input type="text" id="searchBox" placeholder="Search by any field..." onkeyup="filterData()">
+  <div id="loading">Loading data...</div>
+  
+  <table id="dataTable" style="display: none;">
+    <thead>
+      <tr>
+        <th>Farmer Name</th>
+        <th>Item Name</th>
+        <th>Village</th>
+        <th>Block</th>
+        <th>Voucher No.</th>
+        <th>Quantity</th>
+        <th>Rate</th>
+        <th>Total Amount</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS57_epcp9i_8C3_u_tFXQU9mS7b8ApjRFuIzikLlV1nTpKpe_Yf1qKm0TyRkFvQ/pub?output=csv"; // Replace with your published CSV link
+    let dataRows = [];
+
+    // Fetch data in background but don't render anything
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.trim().split("\n").map(row => row.split(","));
+        const headers = rows[0];
+        const data = rows.slice(1).map(r => {
+          let obj = {};
+          headers.forEach((h, i) => obj[h.trim()] = r[i] ? r[i].trim() : "");
+          return obj;
+        });
+        dataRows = data;
+        document.getElementById("loading").style.display = "none";
+      });
+
+    function renderTable(data) {
+      const table = document.getElementById("dataTable");
+      const tbody = table.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      if (data.length === 0) {
+        table.style.display = "none";
+        return;
+      }
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row["Farmer Name"]}</td>
+          <td>${row["Item Name"]}</td>
+          <td>${row["Village"]}</td>
+          <td>${row["Block"]}</td>
+          <td>${row["Voucher No."]}</td>
+          <td>${row["Quantity"]}</td>
+          <td>${row["Rate"]}</td>
+          <td>${row["Total Amount"]}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      table.style.display = "table";
+    }
+
+    function filterData() {
+      const keyword = document.getElementById("searchBox").value.toLowerCase();
+      if (!keyword) {
+        document.getElementById("dataTable").style.display = "none";
+        return;
+      }
+
+      const filtered = dataRows.filter(row =>
+        Object.values(row).some(val => val.toLowerCase().includes(keyword))
+      );
+      renderTable(filtered);
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
