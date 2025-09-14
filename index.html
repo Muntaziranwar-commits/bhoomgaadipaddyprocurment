@@ -1,102 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Farmer Data Search</title>
+  <meta charset="UTF-8" />
+  <title>Bhoomgaadi Organic – Dantewada</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-    input { padding: 8px; width: 300px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; }
-    th { background-color: #ffe600; }
-    #loading { margin-top: 10px; font-style: italic; color: gray; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #eafaf1;
+      color: #333;
+    }
+
+    nav {
+      background-color: #2e7d32;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    #admin-login {
+      background-color: #ffffff;
+      color: #2e7d32;
+      border: 2px solid #ffffff;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #admin-login:hover {
+      background-color: #43a047;
+      color: white;
+    }
+
+    section {
+      padding: 3rem 2rem;
+      max-width: 700px;
+      margin: auto;
+      text-align: center;
+    }
+
+    section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #2e7d32;
+    }
+
+    section p {
+      font-size: 1.1rem;
+      color: #555;
+    }
+
+    /* Custom Modal (Styled Alert Box) */
+    .custom-alert {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 1000;
+      min-width: 300px;
+      max-width: 90%;
+      animation: popup 0.2s ease-out forwards;
+    }
+
+    @keyframes popup {
+      from {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .custom-alert h3 {
+      margin: 0 0 1rem;
+    }
+
+    .custom-alert.success h3 {
+      color: #2e7d32;
+    }
+
+    .custom-alert.error h3 {
+      color: #c62828;
+    }
+
+    .custom-alert.warning h3 {
+      color: #f9a825;
+    }
+
+    .custom-alert button {
+      padding: 0.5rem 1rem;
+      background-color: #2e7d32;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .custom-alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
-  <h2>Search Farmer Data</h2>
-  <input type="text" id="searchBox" placeholder="Search by any field..." onkeyup="filterData()">
-  <div id="loading">Loading data...</div>
-  
-  <table id="dataTable" style="display: none;">
-    <thead>
-      <tr>
-        <th>Farmer Name</th>
-        <th>Item Name</th>
-        <th>Village</th>
-        <th>Block</th>
-        <th>Voucher No.</th>
-        <th>Quantity</th>
-        <th>Rate</th>
-        <th>Total Amount</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <nav>
+    <div class="logo">Bhoomgaadi</div>
+    <button id="admin-login">Admin Login</button>
+  </nav>
+
+  <section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section>
+
+  <!-- Alert Modal -->
+  <div id="alert-overlay" class="custom-alert-overlay" style="display: none;"></div>
+  <div id="alert-box" class="custom-alert" style="display: none;">
+    <h3 id="alert-message">Message</h3>
+    <button onclick="closeAlert()">OK</button>
+  </div>
 
   <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS57_epcp9i_8C3_u_tFXQU9mS7b8ApjRFuIzikLlV1nTpKpe_Yf1qKm0TyRkFvQ/pub?output=csv"; // Replace with your published CSV link
-    let dataRows = [];
+    const SHEET_ID = "1r4dYv0BGqEZamDVIhJ9xVG3J5m_3U8fs2xHb1MDVAjM";
+    const ADMIN_SHEET = "Admins";
 
-    // Fetch data in background but don't render anything
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.trim().split("\n").map(row => row.split(","));
-        const headers = rows[0];
-        const data = rows.slice(1).map(r => {
-          let obj = {};
-          headers.forEach((h, i) => obj[h.trim()] = r[i] ? r[i].trim() : "");
-          return obj;
-        });
-        dataRows = data;
-        document.getElementById("loading").style.display = "none";
-      });
+    async function fetchAdmins() {
+      const url = `https://opensheet.elk.sh/${SHEET_ID}/${ADMIN_SHEET}`;
+      const res = await fetch(url);
+      return await res.json(); // returns array of {email, password}
+    }
 
-    function renderTable(data) {
-      const table = document.getElementById("dataTable");
-      const tbody = table.querySelector("tbody");
-      tbody.innerHTML = "";
+    function showAlert(message, type = "success") {
+      const alertBox = document.getElementById("alert-box");
+      const alertOverlay = document.getElementById("alert-overlay");
+      const alertMessage = document.getElementById("alert-message");
 
-      if (data.length === 0) {
-        table.style.display = "none";
+      alertBox.className = `custom-alert ${type}`;
+      alertMessage.textContent = message;
+
+      alertBox.style.display = "block";
+      alertOverlay.style.display = "block";
+    }
+
+    function closeAlert() {
+      document.getElementById("alert-box").style.display = "none";
+      document.getElementById("alert-overlay").style.display = "none";
+    }
+
+    document.getElementById("admin-login").addEventListener("click", async () => {
+      const email = prompt("Enter admin email:");
+      const password = prompt("Enter password:");
+
+      if (!email || !password) {
+        showAlert("Both email and password are required.", "warning");
         return;
       }
 
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row["Farmer Name"]}</td>
-          <td>${row["Item Name"]}</td>
-          <td>${row["Village"]}</td>
-          <td>${row["Block"]}</td>
-          <td>${row["Voucher No."]}</td>
-          <td>${row["Quantity"]}</td>
-          <td>${row["Rate"]}</td>
-          <td>${row["Total Amount"]}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+      try {
+        const admins = await fetchAdmins();
+        const match = admins.find(admin =>
+          admin.email.trim().toLowerCase() === email.trim().toLowerCase() &&
+          admin.password.trim() === password.trim()
+        );
 
-      table.style.display = "table";
-    }
-
-    function filterData() {
-      const keyword = document.getElementById("searchBox").value.toLowerCase();
-      if (!keyword) {
-        document.getElementById("dataTable").style.display = "none";
-        return;
+        if (match) {
+          showAlert("✅ Login successful!", "success");
+          setTimeout(() => {
+            window.location.href = "farmerinfo.html";
+          }, 1500);
+        } else {
+          showAlert("❌ Incorrect email or password.", "error");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        showAlert("⚠️ Error fetching admin data.", "error");
       }
-
-      const filtered = dataRows.filter(row =>
-        Object.values(row).some(val => val.toLowerCase().includes(keyword))
-      );
-      renderTable(filtered);
-    }
+    });
   </script>
 </body>
 </html>
-
-
-
-
-
