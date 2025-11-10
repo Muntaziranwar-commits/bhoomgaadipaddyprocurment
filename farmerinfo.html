@@ -1,102 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Farmer Data Search</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-    input { padding: 8px; width: 300px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; }
-    th { background-color: #ffe600; }
-    #loading { margin-top: 10px; font-style: italic; color: gray; }
-  </style>
+  <meta charset="UTF-8">
+  <title>Farmer Data Search</title>
+  <script type="text/javascript" src="https://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=flSBNNx7reFcZGRUm9tWy9LVJKrLveiOqZvvVfVzdcwYq8ShT74NxsnGYCBDebra3oTtp55ihc_JirHG9tQi-2XSF5bBaCFCDxHwUvDIAJBQ1lmOhXDxXEdc2jDRTP5nBB-GTPJJBsNykifiGjSfSg" charset="UTF-8"></script>
+  <!-- Add PapaParse from CDN for correct CSV parsing with quotes and commas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    input { padding: 8px; width: 300px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    th { background-color: #ffe600; }
+    #loading { margin-top: 10px; font-style: italic; color: gray; }
+  </style>
 </head>
 <body>
-  <h2>Search Farmer Data</h2>
-  <input type="text" id="searchBox" placeholder="Search by any field..." onkeyup="filterData()">
-  <div id="loading">Loading data...</div>
-  
-  <table id="dataTable" style="display: none;">
-    <thead>
-      <tr>
-        <th>Farmer Name</th>
-        <th>Item Name</th>
-        <th>Village</th>
-        <th>Block</th>
-        <th>Voucher No.</th>
-        <th>Quantity</th>
-        <th>Rate</th>
-        <th>Total Amount</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h2>Paddy Procurement Sheet_Master</h2>
+  <input type="text" id="searchBox" placeholder="Search by any field..." onkeyup="filterData()">
+  <div id="loading">Loading data...</div>
+  
+  <table id="dataTable" style="display: none;">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
 
-  <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS57_epcp9i_8C3_u_tFXQU9mS7b8ApjRFuIzikLlV1nTpKpe_Yf1qKm0TyRkFvQ/pub?output=csv"; // Replace with your published CSV link
-    let dataRows = [];
+  <script>
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUJGuRBmgY0IKvnakhrgXguTFEwg1AaNpPhv4SkryaMi8QSG3bjDSblcTffSvegrJ7ubGV4tr_cOVe/pub?output=csv";
+    let dataRows = [];
+    let headers = [];
 
-    // Fetch data in background but don't render anything
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.trim().split("\n").map(row => row.split(","));
-        const headers = rows[0];
-        const data = rows.slice(1).map(r => {
-          let obj = {};
-          headers.forEach((h, i) => obj[h.trim()] = r[i] ? r[i].trim() : "");
-          return obj;
-        });
-        dataRows = data;
-        document.getElementById("loading").style.display = "none";
-      });
+    // Fetch CSV using PapaParse to fix cells with commas inside quotes
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(csv => {
+        const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+        headers = parsed.meta.fields;
+        dataRows = parsed.data;
+        createTableHeader();
+        document.getElementById("loading").style.display = "none";
+      });
 
-    function renderTable(data) {
-      const table = document.getElementById("dataTable");
-      const tbody = table.querySelector("tbody");
-      tbody.innerHTML = "";
+    function createTableHeader() {
+      const table = document.getElementById("dataTable");
+      const thead = table.querySelector("thead");
+      thead.innerHTML = "";
+      const tr = document.createElement("tr");
+      headers.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col;
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+    }
 
-      if (data.length === 0) {
-        table.style.display = "none";
-        return;
-      }
+    function renderTable(data) {
+      const table = document.getElementById("dataTable");
+      const tbody = table.querySelector("tbody");
+      tbody.innerHTML = "";
 
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row["Farmer Name"]}</td>
-          <td>${row["Item Name"]}</td>
-          <td>${row["Village"]}</td>
-          <td>${row["Block"]}</td>
-          <td>${row["Voucher No."]}</td>
-          <td>${row["Quantity"]}</td>
-          <td>${row["Rate"]}</td>
-          <td>${row["Total Amount"]}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+      if (data.length === 0) {
+        table.style.display = "none";
+        return;
+      }
 
-      table.style.display = "table";
-    }
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        headers.forEach(h => {
+          const td = document.createElement("td");
+          td.textContent = row[h] || "";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
 
-    function filterData() {
-      const keyword = document.getElementById("searchBox").value.toLowerCase();
-      if (!keyword) {
-        document.getElementById("dataTable").style.display = "none";
-        return;
-      }
+      table.style.display = "table";
+    }
 
-      const filtered = dataRows.filter(row =>
-        Object.values(row).some(val => val.toLowerCase().includes(keyword))
-      );
-      renderTable(filtered);
-    }
-  </script>
+    function filterData() {
+      const keyword = document.getElementById("searchBox").value.toLowerCase();
+      if (!keyword) {
+        document.getElementById("dataTable").style.display = "none";
+        return;
+      }
+      const filtered = dataRows.filter(row =>
+        Object.values(row).some(val => (val || "").toLowerCase().includes(keyword))
+      );
+      renderTable(filtered);
+    }
+  </script>
 </body>
 </html>
-
-
-
-
-
