@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  
   <title>Bhoomgaadi Organic – Dantewada</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     * {
       box-sizing: border-box;
@@ -133,6 +135,20 @@
     }
   </style>
 </head>
+<script>
+  // tiny protection: disable right-click + common dev shortcuts
+  (function(){
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && /[IJC]/i.test(e.key)) || // Ctrl+Shift+I/J/C
+        (e.ctrlKey && /^u$/i.test(e.key))                    // Ctrl+U
+      ) e.preventDefault();
+    });
+  })();
+</script>
+
 <body>
   <nav>
     <div class="logo">Bhoomgaadi</div>
@@ -140,6 +156,28 @@
   </nav>
 
   <section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section>
+  <section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section><section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section><section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section><section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section><section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section><section>
+    <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
+    <p>This site showcases our organic products and empowers tribal farmers.</p>
+  </section><section>
     <h2>Welcome to Bhoomgaadi Organic Farmer Producer Company</h2>
     <p>This site showcases our organic products and empowers tribal farmers.</p>
   </section>
@@ -152,7 +190,7 @@
   </div>
 
   <script>
-    const SHEET_ID = "1r4dYv0BGqEZamDVIhJ9xVG3J5m_3U8fs2xHb1MDVAjM";
+    const SHEET_ID = "1qxdnAz4IDNE81eGUFA4XQbtrWvxKTWOsWkvqWv4d3M8";
     const ADMIN_SHEET = "Admins";
 
     async function fetchAdmins() {
@@ -197,7 +235,7 @@
         if (match) {
           showAlert("✅ Login successful!", "success");
           setTimeout(() => {
-            window.location.href = "farmerinfo.html";
+            window.location.href = "data.html";
           }, 1500);
         } else {
           showAlert("❌ Incorrect email or password.", "error");
@@ -210,4 +248,3 @@
   </script>
 </body>
 </html>
-
